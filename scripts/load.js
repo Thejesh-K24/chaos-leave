@@ -9,7 +9,7 @@ export const options = {
 export default function () {
   const url = __ENV.URL;
 
-  // CHAOS env has full string OR we build it from LAT/ERR/CPU
+  // CHAOS env has full string, we build it from LAT/ERR/CPU
   let chaos = __ENV.CHAOS || "";
   if (!chaos) {
     const parts = [];
@@ -23,7 +23,6 @@ export default function () {
 
   http.get(fullUrl, { timeout: '60s' });
 
-  // pacing – you can tune this; the paper typically cares about concurrency,
-  // not insane RPS, so sleep(1) is fine to control cost.
+
   sleep(1);
 }
