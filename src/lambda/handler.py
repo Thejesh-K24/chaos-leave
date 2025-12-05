@@ -71,10 +71,10 @@ def apply_leave(payload):
 
 
 def handler(event, context):
-    # 1) Parse chaos controls
+    # Parse chaos controls
     lat_ms, err_pct, cpu_ms = parse_chaos(event)
 
-    # 2) Inject CPU + latency + random error
+    # Inject CPU + latency + random error
     cpu_spin(cpu_ms)
     if lat_ms > 0:
         time.sleep(lat_ms / 1000.0)
@@ -84,7 +84,7 @@ def handler(event, context):
             "body": "Injected failure from chaos controller"
         }
 
-    # 3) Simple router for leave management
+    # Simple router for leave management
     method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
     path = event.get("requestContext", {}).get("http", {}).get("path", "/")
 

@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Use env URL if set, otherwise fallback (replace fallback with your real URL if you want)
 URL = os.getenv("URL") or "https://your-api.execute-api.region.amazonaws.com/leave"
 
 RESULTS_DIR = Path("results/raw")
