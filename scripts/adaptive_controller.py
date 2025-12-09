@@ -14,7 +14,7 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 # hard limit: account concurrency
 MAX_VUS = 10
 
-# SLA targets (you can tune these)
+# SLA targets
 P95_SLA_MS = 1000.0      # 1 second p95
 ERR_SLA = 0.05           # 5% max error rate
 
@@ -38,18 +38,9 @@ def run_k6(vus: int, lat_ms: int, run_label: str) -> str:
 
 
 def compute_metrics(csv_path: str):
-    """
-    Compute p95 latency and error rate from a k6 CSV.
-
-    Supports:
-      1) Wide format with columns: http_req_duration, http_req_failed
-      2) Long metrics format with columns like:
-         - metric or metric_name
-         - value or metric_value or other numeric column
-    """
     df = pd.read_csv(csv_path)
 
-    # --- Case 1: "wide" format (rare, but easy) ---
+    # --- Case 1: "wide" format ---
     if "http_req_duration" in df.columns and "http_req_failed" in df.columns:
         lat = df["http_req_duration"]
         failed = df["http_req_failed"]
@@ -57,7 +48,7 @@ def compute_metrics(csv_path: str):
         err_rate = float(failed.mean())
         return p95, err_rate
 
-    # --- Case 2: "long" k6 metrics format (common) ---
+    # --- Case 2: "long" k6 metrics format ---
     # Detect metric name column
     metric_col = None
     for cand in ["metric", "metric_name"]:
@@ -164,3 +155,38 @@ if __name__ == "__main__":
     out_path = processed_dir / "adaptive_history.csv"
     df.to_csv(out_path, index=False)
     print(f"\nSaved adaptive history to {out_path}")
+
+    # -------------------------------------------------------
+    # CLEAN SUMMARY BLOCK
+    # -------------------------------------------------------
+    print("\n=============== CLEAN SUMMARY (For Thesis Report) ===============")
+    if not df.empty:
+        latencies = sorted(df["lat_ms"].unique())
+
+        for lat in latencies:
+            print(f"\nChaos Level: {lat} ms")
+            print("-----------------------------------------------------------")
+            print("VUS |   p95 (ms)   | Error Rate | SLA-OK")
+            print("-----------------------------------------------------------")
+
+            subset = df[df["lat_ms"] == lat]
+            if subset.empty:
+                print("No data recorded for this chaos level.")
+                continue
+
+            for _, row in subset.iterrows():
+                print(
+                    f"{int(row['vus']):3d} | {row['p95_ms']:12.2f} |"
+                    f"   {row['err_rate']:.3f}    |  {'YES' if row['ok'] else 'NO'}"
+                )
+
+            safe = subset[subset["ok"] == True]
+            if not safe.empty:
+                best = safe["vus"].max()
+                print(f"\n--> Best stable VUs for {lat} ms chaos = {best}")
+            else:
+                print(f"\n--> SLA violated at VU=1 for {lat} ms chaos")
+    else:
+        print("No history collected; nothing to summarise.")
+
+    print("===============================================================")

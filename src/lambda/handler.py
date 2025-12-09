@@ -14,7 +14,7 @@ def parse_chaos(event):
     """
     chaos_str = ""
 
-    # API Gateway HTTP API / Lambda URL raw query
+    # API Gateway HTTP API
     raw_query = event.get("rawQueryString") or ""
     if raw_query:
         params = parse_qs(raw_query)
@@ -57,14 +57,14 @@ def cpu_spin(ms: int):
         x += 1  # burn cycles
 
 
-# --- pretend leave management logic (baseline paper “leave app”) ---
+# --- leave management logic (baseline paper “leave app”) ---
 
-LEAVES = []  # in-memory for now; you can replace with DynamoDB if LabRole allows
+LEAVES = []
 
 
 def apply_leave(payload):
     """Simplified apply-leave, acting like baseline leave management app."""
-    # Just echo back for now; you can extend with DynamoDB later
+
     payload["id"] = len(LEAVES) + 1
     LEAVES.append(payload)
     return payload

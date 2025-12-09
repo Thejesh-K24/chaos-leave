@@ -9,16 +9,6 @@ OUT_PATH = Path("results/processed/summary_all.csv")
 
 
 def parse_filename(path: Path):
-    """
-    Expected patterns:
-      static_5u_300ms.csv
-      adaptive_lat300_7u_300ms.csv
-      adaptive_lat300_1u_300ms.csv
-    We extract:
-      - mode: static / adaptive / other
-      - vus: int
-      - lat_ms: int
-    """
     name = path.name.replace(".csv", "")
 
     if name.startswith("static_"):
@@ -40,13 +30,6 @@ def parse_filename(path: Path):
 
 
 def extract_latency_and_failed(df: pd.DataFrame):
-    """
-    Return (lat_series, failed_series) from a k6 CSV, in a robust way.
-
-    Supports:
-      1) Wide format with 'http_req_duration' and 'http_req_failed' columns
-      2) Long metrics format with metric/metric_name and value/metric_value columns
-    """
     # Case 1: wide format
     if "http_req_duration" in df.columns and "http_req_failed" in df.columns:
         lat = df["http_req_duration"]
@@ -96,7 +79,7 @@ def extract_latency_and_failed(df: pd.DataFrame):
     lat = df_lat[value_col]
 
     if df_err.empty:
-        failed = pd.Series([0.0])  # assume zero failures if metric missing
+        failed = pd.Series([0.0])
     else:
         failed = df_err[value_col]
 
